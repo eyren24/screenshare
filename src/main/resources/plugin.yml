@@ -1,0 +1,23 @@
+name: Screenshare
+version: '${project.version}'
+main: com.eyren24.screenshare.Screenshare
+api-version: 1.19
+authors: [ Eyren24 ]
+description: screenshare
+commands:
+  control:
+    description: "/control <player>"
+    permission: screenshare.control
+    permission-message: "No permission"
+  screenshare:
+    description: "/screenshare <extra>"
+    permission: screenshare.admin
+    permission-message: "No permission"
+  controlset:
+    description: "/controlset <hacker/admin/finish>"
+    permission: screenshare.control.set
+    permission-message: "No permission"
+  finish:
+    description: "/finish <player>"
+    permission: screenshare.control.finish
+    permission-message: "No permission"

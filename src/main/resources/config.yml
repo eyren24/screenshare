@@ -1,0 +1,40 @@
+prefix: "&6[&eScreenshare&6] "
+
+#use %playername% for player name variable
+player-not-found: "&cPlayer not found %playername%"
+
+#Use %position% for position variable
+control-pos: "&aPosition set %position%"
+
+# Ban message when player quit
+ban-message: "&cYou are banned for quit during control. "
+
+# -1 for permaban 70 50 30{MINUTES} 10080 = 7d
+ban-quit: -1
+
+ban-first-option-exp: 10080
+ban-first-option-reason: "You got hack"
+ban-second-option-exp: 7200
+ban-second-option-reason: "You got hack"
+
+menu:
+  size: 9
+  title: "&7Choice a ban"
+  items: 3
+
+0:
+  item: FEATHER
+  name: "&4Ban 7Day"
+  lore:
+    - "lore1"
+    - "lore2"
+    - "lore3"
+  position: 1
+1:
+  item: FEATHER
+  name: "&4Ban 15Day"
+  lore:
+    - "lore1"
+    - "lore2"
+    - "lore3"
+  position: 4

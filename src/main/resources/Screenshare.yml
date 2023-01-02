@@ -1,0 +1,23 @@
+control:
+  world: "world"
+  hacker:
+    x: 0
+    y: 0
+    z: 0
+    pitch: 0
+    yaw: 0
+  admin:
+    x: 0
+    y: 0
+    z: 0
+    pitch: 0
+    yaw: 0
+  finish:
+    x: 0
+    y: 0
+    z: 0
+    pitch: 0
+    yaw: 0
+
+
+message: "Yes ofc"
