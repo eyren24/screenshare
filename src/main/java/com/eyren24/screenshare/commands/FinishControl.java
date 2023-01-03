@@ -1,22 +1,23 @@
 package com.eyren24.screenshare.commands;
 
-import com.eyren24.screenshare.Engine.ControlEngine;
 import com.eyren24.screenshare.Screenshare;
 import com.eyren24.screenshare.tools.Color;
+import com.eyren24.screenshare.tools.FileManager;
+import com.sun.org.apache.bcel.internal.generic.RET;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.checkerframework.checker.units.qual.C;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 public class FinishControl implements CommandExecutor {
@@ -27,62 +28,70 @@ public class FinishControl implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) return false;
         Player player = (Player) sender;
+        if (!player.hasPermission("screenshare.control.finish")){
+            if (!getConfig().getString("no-perm").isEmpty()){
+                player.sendMessage(Color.chatColor(getConfig().getString("no-perm")));
+                return false;
+            }
+            return false;
+        }
+        createInventory();
         if (args.length != 1) return false;
-        Player target = (Player) Bukkit.getPlayerExact(args[0]);
-        if (target == null){
-            player.sendMessage(Color.chatColor(Screenshare.getPrefix() + Screenshare.getInstance().getConfig().getString("player-not-found")));
+        Player target = Bukkit.getPlayerExact(args[0]);
+        if (target == null) {
+            player.sendMessage(Color.chatColor(Screenshare.getInstance().getConfig().getString("prefix") + Screenshare.getInstance().getConfig().getString("player-not-found")));
             return false;
         }
         if (target.getUniqueId() == player.getUniqueId()) return false;
-        createInventory();
+
         try {
-            if(!Screenshare.getSql().checkControl(target)){
-                player.sendMessage(Color.chatColor(Color.chatColor(Screenshare.getPrefix() + "&cThe player is not in control")));
+            if (!Screenshare.getSql().checkControl(target)) {
+                player.sendMessage(Color.chatColor(Color.chatColor(Screenshare.getInstance().getConfig().getString("prefix") + "&cThe player is not in control")));
                 return false;
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        player.openInventory(inventory);
 
-        Bukkit.getScheduler().cancelTask(ControlEngine.taskID);
 
+        Bukkit.getServer().getScheduler().cancelTask(Screenshare.taskID.get(target.getName()));
+        player.teleport(Objects.requireNonNull(FileManager.getLoc("finish")));
+        target.teleport(Objects.requireNonNull(FileManager.getLoc("finish")));
         try {
             Screenshare.getSql().setControl(target, false);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        player.openInventory(inventory);
         return false;
     }
 
-
-    public void createInventory(){
-        inventory = Bukkit.createInventory(null, Screenshare.getConfigFile().getInt("menu.size"), Color.chatColor(Screenshare.getConfigFile().getString("menu.title")));
-        int items = Screenshare.getConfigFile().getInt("menu.items");
-        ItemStack itemStack = new ItemStack(Material.BLUE_CONCRETE);
-        ItemMeta itemMeta = itemStack.getItemMeta();
-        itemMeta.setDisplayName(Screenshare.getConfigFile().getString("0.name"));
-        List<String> lores = Screenshare.getConfigFile().getStringList("0.lore");
-        List<String> itemLore = new ArrayList<String>();
-        for (String lore : lores){
-            itemLore.add(Color.chatColor(lore));
-        }
-        itemMeta.setLore(itemLore);
-        itemStack.setItemMeta(itemMeta);
-        inventory.setItem(Screenshare.getConfigFile().getInt("0.position"), itemStack);
-        /*for (int i=0; i<=items; i++){
-            ItemStack itemStack = new ItemStack(Material.BLUE_CONCRETE);
-            ItemMeta itemMeta = itemStack.getItemMeta();
-            itemMeta.setDisplayName(Color.chatColor(Screenshare.getConfigFile().getString(i+".name")));
-            List<String> lores = Screenshare.getConfigFile().getStringList(i+".lore");
-            List<String> itemLore = new ArrayList<String>();
-            for (String lore : lores){
-                itemLore.add(Color.chatColor(lore));
-            }
-            itemMeta.setLore(itemLore);
-            itemStack.setItemMeta(itemMeta);
-            inventory.setItem(Screenshare.getConfigFile().getInt(i+".position"), itemStack);
-        }*/
+    private FileConfiguration getConfig() {
+        return Screenshare.getConfigFile();
     }
 
+    public void createInventory() {
+        inventory = Bukkit.createInventory(null, getConfig().getInt("menu.size"), Color.chatColor(getConfig().getString("menu.title")));
+        initializeItems();
+    }
+
+    private void initializeItems() {
+        for (int i = 0; i < getConfig().getConfigurationSection("items").getKeys(false).size(); i++) {
+            inventory.setItem(getConfig().getInt("items." + i + ".position"), createGuiItem(getConfig().getString("items." + i + ".item"), getConfig().getString("items." + i + ".name"), getConfig().getStringList("items." + i + ".lore")));
+        }
+    }
+
+    protected ItemStack createGuiItem(final String material, final String name, final List<String> lores) {
+        final ItemStack item = new ItemStack(Material.getMaterial(material), 1);
+        final ItemMeta meta = item.getItemMeta();
+
+        // Set the name of the item
+        meta.setDisplayName(Color.chatColor(name));
+
+        meta.setLore(lores);
+
+        item.setItemMeta(meta);
+
+        return item;
+    }
 }

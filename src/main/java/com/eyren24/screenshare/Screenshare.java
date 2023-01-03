@@ -8,17 +8,16 @@ import com.eyren24.screenshare.datamanager.DataBase;
 import com.eyren24.screenshare.listener.MyListener;
 import com.eyren24.screenshare.tools.Color;
 import com.eyren24.screenshare.tools.FileManager;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.rmi.server.ExportException;
-import java.sql.SQLException;
+import java.util.HashMap;
 
 public final class Screenshare extends JavaPlugin {
-    private static String prefix;
-
+    public static HashMap<String, Integer> taskID = new HashMap<>();
     private static Screenshare instance;
 
     private static DataBase sql;
@@ -27,25 +26,18 @@ public final class Screenshare extends JavaPlugin {
         return instance;
     }
 
-    public static String getPrefix() {
-        return prefix;
-    }
-
     @Override
     public void onEnable() {
         getConfig().options().copyDefaults();
         saveDefaultConfig();
 
-        System.out.println(Color.chatColor("&aScreenshare enabled"));
+        getLogger().info(ChatColor.GREEN + "ScreenShare Enable");
 
         instance = this;
 
         FileManager.setUp();
         FileManager.get().options().copyDefaults(true);
         FileManager.save();
-
-        prefix = getConfig().getString("prefix");
-
 
         File file = new File(getDataFolder()+"/database.db");
         if (!file.exists()){
@@ -67,7 +59,7 @@ public final class Screenshare extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        System.out.println(Color.chatColor("&cScreenshare disabled"));
+        getLogger().info(Color.chatColor("&cScreenshare disabled"));
         sql.closeConnection();
     }
 

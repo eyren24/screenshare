@@ -8,13 +8,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
-import org.checkerframework.checker.units.qual.C;
 
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.UUID;
 
 public class Control implements CommandExecutor {
     private static Player target;
@@ -25,29 +20,43 @@ public class Control implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-
-        if (args.length != 1) {
-            player.sendMessage(Color.chatColor(Screenshare.getPrefix() + "&cUsage /control <player>"));
+        if (!player.hasPermission("screenshare.control")){
+            if (!Screenshare.getConfigFile().getString("no-perm").isEmpty()){
+                player.sendMessage(Color.chatColor(Screenshare.getConfigFile().getString("no-perm")));
+                return false;
+            }
             return false;
         }
 
-        target = (Player) Bukkit.getPlayer(args[0]);
+        if (args.length != 1) {
+            player.sendMessage(Color.chatColor(Screenshare.getInstance().getConfig().getString("prefix") + "&cUsage /control <player>"));
+            return false;
+        }
+
+        target = Bukkit.getPlayer(args[0]);
         if (target == null) {
-            player.sendMessage(Color.chatColor(Screenshare.getPrefix() + Screenshare.getInstance().getConfig().getString("player-not-found")));
+            player.sendMessage(Color.chatColor(Screenshare.getInstance().getConfig().getString("prefix") + Screenshare.getInstance().getConfig().getString("player-not-found").replaceAll("%playername%", args[0])));
             return false;
         }
         if (target.getUniqueId() == player.getUniqueId()) return false;
+
         // check if player already checked db
         try {
-            if(Screenshare.getSql().checkControl(target)){
-                player.sendMessage(Color.chatColor(Screenshare.getPrefix() + "&cThe player is already in control!"));
+            if (Screenshare.getSql().checkControl(target)) {
+                player.sendMessage(Color.chatColor(Screenshare.getInstance().getConfig().getString("prefix") + "&cThe player is already in control!"));
                 return false;
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        try {
+            Screenshare.getSql().setControl(target, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        BukkitTask task = new ControlEngine(player, target).runTaskLater(Screenshare.getInstance(), 20L);
+        int taskId = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(Screenshare.getInstance(), new ControlEngine(Screenshare.getInstance(), player, target), 0L, 20L);
+        Screenshare.taskID.put(target.getName(), taskId);
 
         return false;
     }

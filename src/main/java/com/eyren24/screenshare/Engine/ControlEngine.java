@@ -4,90 +4,54 @@ import com.eyren24.screenshare.Screenshare;
 import com.eyren24.screenshare.tools.BanPlayer;
 import com.eyren24.screenshare.tools.Color;
 import com.eyren24.screenshare.tools.FileManager;
-import org.bukkit.BanList;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitScheduler;
 
-import java.io.File;
+import javax.swing.*;
 import java.sql.SQLException;
+import java.util.Objects;
 
-public class ControlEngine extends BukkitRunnable {
+public class ControlEngine implements Runnable {
+
+    private final Screenshare plugin;
     private Player admin;
     private Player hacker;
-    public static int taskID;
 
-    public ControlEngine(Player admin, Player hacker) {
-        taskID = getTaskId();
+    public ControlEngine(Screenshare plugin, Player admin, Player hacker) {
+        this.plugin = plugin;
         this.admin = admin;
         this.hacker = hacker;
-
-        String getWorld = FileManager.get().getString("control.world");
-
-        if (getWorld == null) {
-            admin.sendMessage(Color.chatColor(Screenshare.getPrefix() + "&cPosition not found. please set a position /controlset <admin/hacker/finish>"));
-            return;
+        for (String string : Screenshare.getConfigFile().getStringList("control-start")) {
+            admin.sendMessage(Color.chatColor(string).replaceAll("%player%", admin.getName()).replaceAll("%cheater%", hacker.getName()));
         }
-
-        World world = Bukkit.getWorld(getWorld);
-        double x = FileManager.get().getDouble("control.admin.x");
-        double y = FileManager.get().getDouble("control.admin.y");
-        double z = FileManager.get().getDouble("control.admin.z");
-        float pitch = (float) FileManager.get().getDouble("control.admin.pitch");
-        float yaw = (float) FileManager.get().getDouble("control.admin.yaw");
-        Location adminLocation = new Location(world, x, y, z, pitch, yaw);
-        admin.teleport(adminLocation);
-        x = FileManager.get().getDouble("control.hacker.x");
-        y = FileManager.get().getDouble("control.hacker.y");
-        z = FileManager.get().getDouble("control.hacker.z");
-        pitch = (float) FileManager.get().getDouble("control.hacker.pitch");
-        yaw = (float) FileManager.get().getDouble("control.hacker.yaw");
-        Location targetLocation = new Location(world, x, y, z, pitch, yaw);
-        hacker.teleport(targetLocation);
-
-        try {
-            Screenshare.getSql().setControl(hacker, true);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        for (String string : Screenshare.getConfigFile().getStringList("control-start-cheater")) {
+            hacker.sendMessage(Color.chatColor(string).replaceAll("%player%", admin.getName()));
         }
+        // Teleport player to position
+        admin.teleport(Objects.requireNonNull(FileManager.getLoc("admin")));
+        hacker.teleport(Objects.requireNonNull(FileManager.getLoc("hacker")));
     }
 
     @Override
     public void run() {
-        while (true){
-            if (isCancelled()){
-                World world = Bukkit.getWorld(FileManager.get().getString("control.world"));
-                double x = FileManager.get().getDouble("control.finish.x");
-                double y = FileManager.get().getDouble("control.finish.y");
-                double z = FileManager.get().getDouble("control.finish.z");
-                float pitch = (float) FileManager.get().getDouble("control.finish.pitch");
-                float yaw = (float) FileManager.get().getDouble("control.finish.yaw");
-                Location finishLoc = new Location(world, x,y,z,pitch,yaw);
-                hacker.teleport(finishLoc);
-                admin.teleport(finishLoc);
-                return;
+        if (FileManager.get().getBoolean("freeze-player")){
+            hacker.teleport(Objects.requireNonNull(FileManager.getLoc("hacker")));
+        }
+        if (!hacker.isOnline()) {
+            BanPlayer.banPlayer(hacker.getName(), "Quit-during-control", -1, admin.getName());
+            admin.teleport(Objects.requireNonNull(FileManager.getLoc("finish")));
+            for (String string : Screenshare.getConfigFile().getStringList("control-finish")) {
+                admin.sendMessage(Color.chatColor(string).replaceAll("%punishment%", Color.chatColor(Screenshare.getConfigFile().getString("punishment.quit"))));
             }
-            if (!hacker.isOnline()){
-                try {
-                    Screenshare.getSql().setControl(hacker, false);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-                World world = Bukkit.getWorld(FileManager.get().getString("control.world"));
-                double x = FileManager.get().getDouble("control.finish.x");
-                double y = FileManager.get().getDouble("control.finish.y");
-                double z = FileManager.get().getDouble("control.finish.z");
-                float pitch = (float) FileManager.get().getDouble("control.finish.pitch");
-                float yaw = (float) FileManager.get().getDouble("control.finish.yaw");
-                Location finishLoc = new Location(world, x,y,z,pitch,yaw);
-                admin.teleport(finishLoc);
-                BanPlayer.banPlayer(hacker.getName(), Color.chatColor(Screenshare.getPrefix() + FileManager.get().getString("ban-message")),Screenshare.getInstance().getConfig().getInt("ban-quit"), admin.getName());
-                return;
+            try {
+                Screenshare.getSql().setControl(hacker, false);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
+            Bukkit.getServer().getScheduler().cancelTask(Screenshare.taskID.get(hacker.getName()));
         }
     }
+
+
 }
+

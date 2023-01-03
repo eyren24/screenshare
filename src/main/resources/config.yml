@@ -6,6 +6,44 @@ player-not-found: "&cPlayer not found %playername%"
 #Use %position% for position variable
 control-pos: "&aPosition set %position%"
 
+#Set "" for no message
+no-perm: "&4&lYou don't have permission to use this command!"
+
+# Freeze player on control
+freeze-player: true
+
+# %player% = player who start the control | %cheater% = target
+control-start:
+  - "&5--------------"
+  - "&aControl start by &e&l%player%&a, cheater &4&l%cheater%"
+  - "&aChat!"
+  - "&5--------------"
+
+# %player% = player who start the control
+control-start-cheater:
+  - "&5--------------"
+  - "&4&lYou are in control! &c&lPlease look the chat."
+  - "&eby &l%player%"
+  - "&5--------------"
+
+# %punishment% = clear / hack found / admit
+control-finish:
+  - "&5--------------"
+  - "&aControl Finished"
+  - "&aCheater %punishment%"
+  - "&5--------------"
+
+control-finish-cheater:
+  - "&5--------------"
+  - "&aControl Finished, you are %punishment%"
+  - "&5--------------"
+
+punishment:
+  clear: "&aClear"
+  hack-found: "&4Cheat Detect"
+  admit: "&4Admit"
+  quit: "&4Quit During Control"
+
 # Ban message when player quit
 ban-message: "&cYou are banned for quit during control. "
 
@@ -18,23 +56,48 @@ ban-second-option-exp: 7200
 ban-second-option-reason: "You got hack"
 
 menu:
-  size: 9
-  title: "&7Choice a ban"
-  items: 3
+  size: 27 # 9 18 27 36
+  title: "&e[&4&lScreenShare&e] &7&lBan Control"  # Title can't be long than 20 char
 
-0:
-  item: FEATHER
-  name: "&4Ban 7Day"
-  lore:
-    - "lore1"
-    - "lore2"
-    - "lore3"
-  position: 1
-1:
-  item: FEATHER
-  name: "&4Ban 15Day"
-  lore:
-    - "lore1"
-    - "lore2"
-    - "lore3"
-  position: 4
+items:
+  0:
+    item: RED_CONCRETE
+    name: "&4&lBan 15d"
+    lore:
+      - "Hack Found"
+    position: 10
+    commands:
+      - "ban %target% 15d Hack Found during control"
+  1:
+    item: ORANGE_CONCRETE
+    name: "&c&lBan 7Day"
+    lore:
+      - "Hack Found"
+    position: 12
+    commands:
+      - "ban %target% 7d Hack Found during control"
+  2:
+    item: GREEN_CONCRETE
+    name: "&a&lClear"
+    lore:
+      - "&a%target% Clear"
+      - "&eChecked by %player%"
+    position: 14
+    commands:
+      - "[MESSAGE] %target% clean!"
+  3:
+    item: BLUE_CONCRETE
+    name: "&9&lBan 1d"
+    lore:
+      - "Hacker admit"
+    position: 16
+    commands:
+      - "ban %target% 1d %target% admit cheater"
+  4:
+    item: REDSTONE_BLOCK
+    name: "&4&lClose"
+    lore:
+      - "Close inventory"
+    position: 26
+    commands:
+      - "[CLOSE]"

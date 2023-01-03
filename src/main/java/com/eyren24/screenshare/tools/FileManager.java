@@ -1,6 +1,9 @@
 package com.eyren24.screenshare.tools;
 
 import com.eyren24.screenshare.Screenshare;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -44,5 +47,36 @@ public class FileManager {
 
     public static void reload() {
         fileConfiguration = YamlConfiguration.loadConfiguration(file);
+    }
+
+    public static Location getLoc(String loc) {
+        String getWorld = FileManager.get().getString("control.world");
+        if (getWorld == null) return null;
+        World world = Bukkit.getWorld(getWorld);
+        if (loc.equalsIgnoreCase("admin")) {
+            double x = FileManager.get().getDouble("control.admin.x");
+            double y = FileManager.get().getDouble("control.admin.y");
+            double z = FileManager.get().getDouble("control.admin.z");
+            float pitch = (float) FileManager.get().getDouble("control.admin.pitch");
+            float yaw = (float) FileManager.get().getDouble("control.admin.yaw");
+            return new Location(world, x, y, z, pitch, yaw);
+        }
+        if (loc.equalsIgnoreCase("hacker")) {
+            double x = FileManager.get().getDouble("control.hacker.x");
+            double y = FileManager.get().getDouble("control.hacker.y");
+            double z = FileManager.get().getDouble("control.hacker.z");
+            float pitch = (float) FileManager.get().getDouble("control.hacker.pitch");
+            float yaw = (float) FileManager.get().getDouble("control.hacker.yaw");
+            return new Location(world, x, y, z, pitch, yaw);
+        }
+        if (loc.equalsIgnoreCase("finish")) {
+            double x = FileManager.get().getDouble("control.finish.x");
+            double y = FileManager.get().getDouble("control.finish.y");
+            double z = FileManager.get().getDouble("control.finish.z");
+            float pitch = (float) FileManager.get().getDouble("control.finish.pitch");
+            float yaw = (float) FileManager.get().getDouble("control.finish.yaw");
+            return new Location(world, x, y, z, pitch, yaw);
+        }
+        return null;
     }
 }

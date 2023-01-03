@@ -15,7 +15,13 @@ public class SetControl implements CommandExecutor {
         if (!(sender instanceof Player)) return false;
 
         Player player = (Player) sender;
-
+        if (!player.hasPermission("screenshare.control.set")){
+            if (!Screenshare.getConfigFile().getString("no-perm").isEmpty()){
+                player.sendMessage(Color.chatColor(Screenshare.getConfigFile().getString("no-perm")));
+                return false;
+            }
+            return false;
+        }
         String world = player.getWorld().getName();
         double X = player.getLocation().getX();
         double Y = player.getLocation().getY();
@@ -32,7 +38,7 @@ public class SetControl implements CommandExecutor {
             FileManager.get().set("control.hacker.z", Z);
             FileManager.get().set("control.hacker.pitch", pitch);
             FileManager.get().set("control.hacker.yaw", yaw);
-            player.sendMessage(Color.chatColor(Screenshare.getPrefix() + Screenshare.getInstance().getConfig().getString("control-pos").replaceAll("%position%", "Hacker")));
+            player.sendMessage(Color.chatColor(Screenshare.getInstance().getConfig().getString("prefix") + Screenshare.getInstance().getConfig().getString("control-pos").replaceAll("%position%", "Hacker")));
             FileManager.save();
             FileManager.reload();
             return true;
@@ -44,7 +50,7 @@ public class SetControl implements CommandExecutor {
             FileManager.get().set("control.admin.z", Z);
             FileManager.get().set("control.admin.pitch", pitch);
             FileManager.get().set("control.admin.yaw", yaw);
-            player.sendMessage(Color.chatColor(Screenshare.getPrefix() + Screenshare.getInstance().getConfig().getString("control-pos").replaceAll("%position%", "Admin")));
+            player.sendMessage(Color.chatColor(Screenshare.getInstance().getConfig().getString("prefix") + Screenshare.getInstance().getConfig().getString("control-pos").replaceAll("%position%", "Admin")));
             FileManager.save();
             FileManager.reload();
             return true;
@@ -56,7 +62,7 @@ public class SetControl implements CommandExecutor {
             FileManager.get().set("control.finish.z", Z);
             FileManager.get().set("control.finish.pitch", pitch);
             FileManager.get().set("control.finish.yaw", yaw);
-            player.sendMessage(Color.chatColor(Screenshare.getPrefix() + Screenshare.getInstance().getConfig().getString("control-pos").replaceAll("%position%", "Finish")));
+            player.sendMessage(Color.chatColor(Screenshare.getInstance().getConfig().getString("prefix") + Screenshare.getInstance().getConfig().getString("control-pos").replaceAll("%position%", "Finish")));
             FileManager.save();
             FileManager.reload();
             return true;
