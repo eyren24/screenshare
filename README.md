@@ -1,5 +1,5 @@
 
-<center style="color: #ff0000">ScreenShare</center>
+<h1 style="color: #ff0000; text-align: center">ScreenShare</h1>
 Control-Hacker Plugin Eyren24.
 
 Features
